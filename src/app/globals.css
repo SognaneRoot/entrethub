@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Entrethub light mode — navy + teal */
+    --background: 220 33% 98%;
+    --foreground: 224 71% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 12%;
+
+    --primary: 224 71% 12%;        /* navy-900 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 100% 42%;     /* teal-400 */
+    --secondary-foreground: 224 71% 12%;
+
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 174 100% 42%;
+    --accent-foreground: 224 71% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 89%;
+    --input: 220 13% 89%;
+    --ring: 174 100% 42%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 224 71% 5%;
+    --foreground: 210 40% 96%;
+
+    --card: 224 50% 8%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 224 50% 8%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 174 100% 42%;
+    --primary-foreground: 224 71% 5%;
+
+    --secondary: 224 30% 16%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 224 30% 12%;
+    --muted-foreground: 215 20% 60%;
+
+    --accent: 174 100% 42%;
+    --accent-foreground: 224 71% 5%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 224 30% 16%;
+    --input: 224 30% 16%;
+    --ring: 174 100% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  /* Gradient mesh hero background */
+  .bg-hero-mesh {
+    background-color: #0F1629;
+    background-image:
+      radial-gradient(at 15% 25%, rgba(45, 65, 165, 0.7) 0%, transparent 55%),
+      radial-gradient(at 85% 75%, rgba(0, 212, 177, 0.35) 0%, transparent 55%),
+      radial-gradient(at 50% 100%, rgba(0, 168, 142, 0.2) 0%, transparent 50%);
+  }
+
+  /* Teal glow effect */
+  .glow-teal {
+    box-shadow: 0 0 40px rgba(0, 212, 177, 0.25);
+  }
+
+  /* Glass card effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Animated underline */
+  .underline-teal {
+    position: relative;
+  }
+  .underline-teal::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #00D4B1, #2D41A5);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .underline-teal:hover::after {
+    transform: scaleX(1);
+  }
+}
