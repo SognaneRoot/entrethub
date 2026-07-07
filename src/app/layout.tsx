@@ -28,7 +28,6 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      {/* className="dark" force le thème sombre partout */}
       <html lang="fr" className="dark" suppressHydrationWarning>
         <body className="bg-[#0F1629] text-white antialiased">{children}</body>
       </html>

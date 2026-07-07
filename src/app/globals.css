@@ -5,37 +5,27 @@
 @tailwind utilities;
 
 @layer base {
-  /* ── Thème sombre — valeur par défaut (Entrethub est dark-first) ── */
   :root,
   .dark {
     --background: 224 71% 5%;
     --foreground: 210 40% 96%;
-
     --card: 224 50% 8%;
     --card-foreground: 210 40% 96%;
-
     --popover: 224 50% 8%;
     --popover-foreground: 210 40% 96%;
-
-    --primary: 174 100% 42%;          /* teal-400 */
+    --primary: 174 100% 42%;
     --primary-foreground: 224 71% 5%;
-
     --secondary: 224 30% 16%;
     --secondary-foreground: 210 40% 96%;
-
     --muted: 224 30% 12%;
     --muted-foreground: 215 20% 60%;
-
     --accent: 174 100% 42%;
     --accent-foreground: 224 71% 5%;
-
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 224 30% 16%;
     --input: 224 30% 16%;
     --ring: 174 100% 42%;
-
     --radius: 0.625rem;
   }
 }
@@ -57,32 +47,22 @@
     @apply font-display;
   }
 
-  /* Reset liens — on ne veut PAS le bleu navigateur par défaut */
+  /* Reset liens navigateur — plus de bleu par défaut */
   a {
-    @apply text-inherit no-underline;
+    color: inherit;
+    text-decoration: none;
   }
 
   /* Scrollbar dark */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0F1629;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.12);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 212, 177, 0.4);
-  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0F1629; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,212,177,0.4); }
 
-  /* Inputs dark natifs */
+  /* Inputs dark */
   input[type="month"]::-webkit-calendar-picker-indicator {
     filter: invert(1) opacity(0.4);
   }
-
   select option {
     background-color: #121a42;
     color: white;
@@ -90,57 +70,41 @@
 }
 
 @layer utilities {
-  /* Gradient mesh hero */
   .bg-hero-mesh {
     background-color: #0F1629;
     background-image:
-      radial-gradient(at 15% 25%, rgba(45, 65, 165, 0.7) 0%, transparent 55%),
-      radial-gradient(at 85% 75%, rgba(0, 212, 177, 0.35) 0%, transparent 55%),
-      radial-gradient(at 50% 100%, rgba(0, 168, 142, 0.2) 0%, transparent 50%);
+      radial-gradient(at 15% 25%, rgba(45,65,165,0.7) 0%, transparent 55%),
+      radial-gradient(at 85% 75%, rgba(0,212,177,0.35) 0%, transparent 55%),
+      radial-gradient(at 50% 100%, rgba(0,168,142,0.2) 0%, transparent 50%);
   }
 
-  /* Teal glow */
   .glow-teal {
-    box-shadow: 0 0 40px rgba(0, 212, 177, 0.25);
+    box-shadow: 0 0 40px rgba(0,212,177,0.25);
   }
 
-  /* Glass card */
   .glass {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255,255,255,0.04);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255,255,255,0.08);
   }
 
-  /* Animated underline */
-  .underline-teal {
-    position: relative;
-  }
+  .underline-teal { position: relative; }
   .underline-teal::after {
     content: '';
     position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 100%;
-    height: 2px;
+    left: 0; bottom: -4px;
+    width: 100%; height: 2px;
     background: linear-gradient(90deg, #00D4B1, #2D41A5);
     border-radius: 2px;
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.3s ease;
   }
-  .underline-teal:hover::after {
-    transform: scaleX(1);
-  }
+  .underline-teal:hover::after { transform: scaleX(1); }
 
-  /* Animations */
   @keyframes pulse-slow {
     0%, 100% { opacity: 0.4; }
-    50%       { opacity: 0.8; }
-  }
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
+    50% { opacity: 0.8; }
   }
   .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
-  .animate-fade-up    { animation: fade-up 0.5s ease-out forwards; }
 }
