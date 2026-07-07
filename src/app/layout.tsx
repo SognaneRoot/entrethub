@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: '%s | Entrethub',
   },
   description:
-    'Votre coach carrière IA : optimisation de CV, lettres de motivation, simulation d\'entretiens et roadmap de compétences personnalisée.',
+    "Votre coach carrière IA : optimisation de CV, lettres de motivation, simulation d'entretiens et roadmap de compétences personnalisée.",
   keywords: ['CV', 'entretien', 'emploi', 'carrière', 'IA', 'coach', 'ATS'],
   authors: [{ name: 'Entrethub' }],
   openGraph: {
@@ -28,8 +28,9 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="fr" suppressHydrationWarning>
-        <body>{children}</body>
+      {/* className="dark" force le thème sombre partout */}
+      <html lang="fr" className="dark" suppressHydrationWarning>
+        <body className="bg-[#0F1629] text-white antialiased">{children}</body>
       </html>
     </ClerkProvider>
   );
