@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { Save, Loader2, User, Bell, Shield, Palette } from 'lucide-react';
 import { useTheme } from '@/components/ui/ThemeProvider';
+import type { SeniorityLevel } from '@/types';
 
 const inputCls =
   'w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all border border-app focus:border-[var(--teal)] text-app placeholder:text-app-muted bg-surface-2';
@@ -74,7 +75,7 @@ export default function SettingsPage() {
             <label className="text-sm font-medium text-app-2">Niveau de séniorité</label>
             <select className={inputCls}
               value={form.seniority}
-              onChange={e => setForm(f => ({ ...f, seniority: e.target.value }))}>
+              onChange={e => setForm(f => ({ ...f, seniority: e.target.value as SeniorityLevel }))}>
               {[
                 { value: 'junior',    label: 'Junior (0–2 ans)' },
                 { value: 'mid',       label: 'Confirmé (2–5 ans)' },
