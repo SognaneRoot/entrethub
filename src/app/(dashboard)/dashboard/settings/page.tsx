@@ -5,10 +5,8 @@ import { useUser } from '@/hooks/useUser';
 import { Save, Loader2, User, Bell, Shield, Palette } from 'lucide-react';
 import { useTheme } from '@/components/ui/ThemeProvider';
 
-const inputCls = "w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
-  + " border border-app focus:border-[var(--teal)]"
-  + " text-app placeholder:text-app-muted"
-  + " bg-surface-2";
+const inputCls =
+  'w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all border border-app focus:border-[var(--teal)] text-app placeholder:text-app-muted bg-surface-2';
 
 export default function SettingsPage() {
   const { profile, clerkUser } = useUser();
@@ -24,7 +22,7 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise(r => setTimeout(r, 800)); // placeholder
+    await new Promise(r => setTimeout(r, 800));
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -46,18 +44,16 @@ export default function SettingsPage() {
         <div className="flex items-center gap-4">
           {clerkUser?.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={clerkUser.imageUrl} alt="avatar"
-              className="w-14 h-14 rounded-full ring-2 ring-[var(--teal)] ring-offset-2"
-              style={{ ringOffsetColor: 'var(--background)' }} />
+            <img
+              src={clerkUser.imageUrl}
+              alt="avatar"
+              className="w-14 h-14 rounded-full ring-2 ring-[var(--teal)]"
+            />
           )}
           <div>
-            <div className="font-semibold text-app">
-              {clerkUser?.fullName ?? '—'}
-            </div>
-            <div className="text-app-muted text-sm">
-              {clerkUser?.primaryEmailAddress?.emailAddress}
-            </div>
-            <div className="text-xs text-[var(--teal)] mt-0.5">Plan gratuit</div>
+            <div className="font-semibold text-app">{clerkUser?.fullName ?? '—'}</div>
+            <div className="text-app-muted text-sm">{clerkUser?.primaryEmailAddress?.emailAddress}</div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--teal)' }}>Plan gratuit</div>
           </div>
         </div>
 
@@ -92,9 +88,12 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <button onClick={handleSave} disabled={saving}
+        <button
+          onClick={handleSave}
+          disabled={saving}
           className="flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60"
-          style={{ backgroundColor: 'var(--teal)', color: '#0F1629' }}>
+          style={{ backgroundColor: 'var(--teal)', color: '#0F1629' }}
+        >
           {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Sauvegarde…</>
                   : saved  ? <>✓ Sauvegardé</>
                            : <><Save className="w-4 h-4" /> Sauvegarder</>}
@@ -113,9 +112,10 @@ export default function SettingsPage() {
               Actuellement : {theme === 'dark' ? '🌙 Mode sombre' : '☀️ Mode clair'}
             </div>
           </div>
-          <button onClick={toggle}
-            className="text-sm font-medium px-4 py-2 rounded-xl border border-app hover:border-[var(--teal)] transition-all"
-            style={{ backgroundColor: 'var(--surface-2)' }}>
+          <button
+            onClick={toggle}
+            className="text-sm font-medium px-4 py-2 rounded-xl border border-app hover:border-[var(--teal)] transition-all bg-surface-2"
+          >
             {theme === 'dark' ? '☀️ Passer en clair' : '🌙 Passer en sombre'}
           </button>
         </div>
@@ -127,30 +127,27 @@ export default function SettingsPage() {
           <Bell className="w-4 h-4 text-[var(--teal)]" /> Notifications
         </h2>
         {[
-          { label: 'Rappels de préparation quotidienne', desc: 'Recevoir un email si vous n\'avez pas pratiqué aujourd\'hui' },
-          { label: 'Résultats de simulation', desc: 'Email après chaque simulation d\'entretien terminée' },
-          { label: 'Nouveautés Entrethub', desc: 'Nouvelles fonctionnalités et mises à jour' },
+          { label: 'Rappels quotidiens',       desc: "Recevoir un email si vous n'avez pas pratiqué aujourd'hui" },
+          { label: 'Résultats de simulation',  desc: 'Email après chaque simulation d\'entretien terminée' },
+          { label: 'Nouveautés Entrethub',     desc: 'Nouvelles fonctionnalités et mises à jour' },
         ].map((n, i) => (
-          <div key={i} className="flex items-start justify-between gap-4">
+          <div key={i} className="flex items-start justify-between gap-4 py-1">
             <div>
               <div className="text-sm font-medium text-app">{n.label}</div>
               <div className="text-xs text-app-muted mt-0.5">{n.desc}</div>
             </div>
-            <button className="shrink-0 w-10 h-5 rounded-full border border-app transition-all"
-              style={{ backgroundColor: 'var(--surface-2)' }}>
-              <div className="w-3.5 h-3.5 rounded-full bg-app-muted translate-x-0.5 transition-transform" />
-            </button>
           </div>
         ))}
       </div>
 
       {/* Sécurité */}
-      <div className="card p-6 space-y-4">
+      <div className="card p-6 space-y-3">
         <h2 className="font-display font-semibold text-app flex items-center gap-2">
           <Shield className="w-4 h-4 text-[var(--teal)]" /> Compte & sécurité
         </h2>
-        <p className="text-sm text-app-muted">
-          Votre compte est géré par Clerk. Pour changer votre mot de passe ou vos informations de connexion, utilisez le menu de votre avatar en haut à droite.
+        <p className="text-sm text-app-muted leading-relaxed">
+          Votre compte est géré par Clerk. Pour changer votre mot de passe ou vos
+          informations de connexion, utilisez le menu de votre avatar en haut à droite.
         </p>
       </div>
     </div>
