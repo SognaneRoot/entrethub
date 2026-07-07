@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
+import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,26 +11,22 @@ export const metadata: Metadata = {
   description:
     "Votre coach carrière IA : optimisation de CV, lettres de motivation, simulation d'entretiens et roadmap de compétences personnalisée.",
   keywords: ['CV', 'entretien', 'emploi', 'carrière', 'IA', 'coach', 'ATS'],
-  authors: [{ name: 'Entrethub' }],
-  openGraph: {
-    type: 'website',
-    locale: 'fr_FR',
-    url: 'https://entrethub.vercel.app',
-    siteName: 'Entrethub',
-    title: 'Entrethub — Coach Carrière IA',
-    description: 'Préparez vos candidatures. Réussissez vos entretiens.',
-  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html lang="fr" className="dark" suppressHydrationWarning>
-        <body className="bg-[#0F1629] text-white antialiased">{children}</body>
+    <ClerkProvider
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard"
+    >
+      <html lang="fr" suppressHydrationWarning>
+        {/*
+          suppressHydrationWarning est nécessaire car ThemeProvider
+          injecte la classe (dark/light) côté client au premier render
+        */}
+        <body className="antialiased">
+          <ThemeProvider>{children}</ThemeProvider>
+        </body>
       </html>
     </ClerkProvider>
   );
