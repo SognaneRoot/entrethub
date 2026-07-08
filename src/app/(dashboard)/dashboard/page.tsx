@@ -1,223 +1,200 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import {
-  FileText,
-  Mic2,
-  Mail,
-  TrendingUp,
-  ArrowRight,
-  Flame,
-  Star,
-  Target,
-  Clock,
-  ChevronRight,
-} from 'lucide-react';
 import Link from 'next/link';
+import { supabaseAdmin } from '@/lib/supabase';
+import {
+  FileText, Mic2, Mail, TrendingUp,
+  ArrowRight, Flame, Star, Target,
+  Clock, ChevronRight,
+} from 'lucide-react';
 
-// Stats cards
-const STATS = [
-  { label: 'CVs créés',        value: '0', icon: FileText,  color: 'from-blue-500 to-indigo-600',  href: '/dashboard/cv' },
-  { label: 'Entretiens faits', value: '0', icon: Mic2,      color: 'from-teal-400 to-emerald-500', href: '/dashboard/interview' },
-  { label: 'Score moyen',      value: '—', icon: Star,      color: 'from-orange-400 to-pink-500',  href: '/dashboard/progress' },
-  { label: 'Jours de streak',  value: '0', icon: Flame,     color: 'from-red-400 to-orange-400',   href: '/dashboard/progress' },
-];
+async function getDashboardData(clerkId: string) {
+  const db = supabaseAdmin();
+  const { data: user } = await db.from('users').select('id').eq('clerk_id', clerkId).single();
+  if (!user) return null;
 
-// Quick actions
+  const [cvs, interviews, letters, goals] = await Promise.all([
+    db.from('cvs').select('id').eq('user_id', user.id),
+    db.from('interview_sessions').select('id, global_score, status').eq('user_id', user.id).eq('status', 'completed'),
+    db.from('cover_letters').select('id').eq('user_id', user.id),
+    db.from('career_goals').select('id, completed').eq('user_id', user.id),
+  ]);
+
+  const scores     = (interviews.data ?? []).map(i => i.global_score).filter(Boolean) as number[];
+  const avgScore   = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+  const doneGoals  = (goals.data ?? []).filter(g => g.completed).length;
+
+  return {
+    cvCount:       cvs.data?.length ?? 0,
+    interviewCount: interviews.data?.length ?? 0,
+    letterCount:   letters.data?.length ?? 0,
+    goalCount:     goals.data?.length ?? 0,
+    doneGoals,
+    avgScore,
+  };
+}
+
 const QUICK_ACTIONS = [
-  {
-    title: 'Créer mon CV',
-    description: 'Nouveau CV optimisé ATS en 5 minutes',
-    icon: FileText,
-    href: '/dashboard/cv',
-    cta: 'Commencer',
-    accent: 'teal',
-  },
-  {
-    title: 'Simuler un entretien',
-    description: 'Choisissez un poste et entraînez-vous',
-    icon: Mic2,
-    href: '/dashboard/interview',
-    cta: 'Lancer',
-    accent: 'blue',
-  },
-  {
-    title: 'Générer une lettre',
-    description: 'Lettre de motivation en 30 secondes',
-    icon: Mail,
-    href: '/dashboard/cover-letter',
-    cta: 'Générer',
-    accent: 'violet',
-  },
-  {
-    title: 'Mon Career Coach',
-    description: 'Roadmap personnalisée + recommandations',
-    icon: TrendingUp,
-    href: '/dashboard/coach',
-    cta: 'Voir ma roadmap',
-    accent: 'orange',
-  },
+  { title: 'Créer mon CV',          desc: 'Nouveau CV optimisé ATS',                href: '/dashboard/cv',           icon: FileText,   color: 'teal'   },
+  { title: "Simuler un entretien",  desc: 'Choisissez un poste et entraînez-vous',  href: '/dashboard/interview',    icon: Mic2,       color: 'blue'   },
+  { title: 'Générer une lettre',    desc: 'Lettre de motivation en 30 secondes',     href: '/dashboard/cover-letter', icon: Mail,       color: 'violet' },
+  { title: 'Mon Career Coach',      desc: 'Roadmap personnalisée + recommandations', href: '/dashboard/coach',        icon: TrendingUp, color: 'orange' },
 ];
-
-const ACCENT_CLASSES: Record<string, string> = {
-  teal:   'bg-teal-400/10 border-teal-400/20 hover:border-teal-400/40 group-hover:text-teal-300',
-  blue:   'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 group-hover:text-blue-300',
-  violet: 'bg-violet-500/10 border-violet-500/20 hover:border-violet-500/40 group-hover:text-violet-300',
-  orange: 'bg-orange-400/10 border-orange-400/20 hover:border-orange-400/40 group-hover:text-orange-300',
-};
-
-const ICON_CLASSES: Record<string, string> = {
-  teal:   'text-teal-400',
-  blue:   'text-blue-400',
-  violet: 'text-violet-400',
-  orange: 'text-orange-400',
-};
 
 export default async function DashboardPage() {
   const { userId } = auth();
   if (!userId) redirect('/sign-in');
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8">
+  const data = await getDashboardData(userId);
 
-      {/* ── Bienvenue ─────────────────────────────────────────────────────── */}
+  const stats = [
+    { label: 'CVs créés',         value: data?.cvCount ?? 0,        icon: FileText,  href: '/dashboard/cv'        },
+    { label: 'Entretiens',        value: data?.interviewCount ?? 0,  icon: Mic2,      href: '/dashboard/interview' },
+    { label: 'Score moyen',       value: data?.avgScore ? `${data.avgScore}` : '—', icon: Star, href: '/dashboard/progress' },
+    { label: 'Objectifs actifs',  value: data?.goalCount ?? 0,       icon: Target,    href: '/dashboard/coach'     },
+  ];
+
+  const checklist = [
+    { step: 1, label: 'Créer votre premier CV',              href: '/dashboard/cv',           done: (data?.cvCount ?? 0) > 0 },
+    { step: 2, label: "Lancer une simulation d'entretien",   href: '/dashboard/interview',    done: (data?.interviewCount ?? 0) > 0 },
+    { step: 3, label: 'Générer une lettre de motivation',    href: '/dashboard/cover-letter', done: (data?.letterCount ?? 0) > 0 },
+    { step: 4, label: 'Consulter votre Career Coach',        href: '/dashboard/coach',        done: (data?.goalCount ?? 0) > 0 },
+  ];
+
+  const doneSteps = checklist.filter(c => c.done).length;
+  const pct       = Math.round((doneSteps / checklist.length) * 100);
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8">
+
+      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-white mb-1">
-            Tableau de bord
-          </h1>
-          <p className="text-white/40 text-sm">
-            Votre progression en un coup d'œil. Continuez sur votre lancée 🚀
-          </p>
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-app">Tableau de bord</h1>
+          <p className="text-app-muted text-sm mt-1">Votre progression en un coup d'œil 🚀</p>
         </div>
-
-        {/* Streak badge */}
-        <div className="flex items-center gap-2 bg-orange-400/10 border border-orange-400/20 rounded-xl px-4 py-2">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-app"
+          style={{ backgroundColor: 'var(--surface-2)' }}>
           <Flame className="w-4 h-4 text-orange-400" />
-          <span className="text-sm font-semibold text-orange-300">0 jour</span>
+          <span className="text-sm font-semibold text-app">0 jour</span>
         </div>
       </div>
 
-      {/* ── Stats ─────────────────────────────────────────────────────────── */}
+      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {STATS.map((stat) => {
+        {stats.map(stat => {
           const Icon = stat.icon;
           return (
-            <Link
-              key={stat.label}
-              href={stat.href}
-              className="group bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 hover:border-white/15 rounded-2xl p-5 transition-all duration-200"
-            >
-              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} mb-4`}>
-                <Icon className="w-4.5 h-4.5 text-white" />
-              </div>
-              <div className="font-display text-2xl font-bold text-white mb-0.5">
-                {stat.value}
-              </div>
-              <div className="text-xs text-white/40">{stat.label}</div>
+            <Link key={stat.label} href={stat.href}
+              className="card p-5 hover:border-[var(--border-hover)] group transition-all">
+              <Icon className="w-4 h-4 mb-4" style={{ color: 'var(--teal)' }} />
+              <div className="font-display text-2xl font-bold text-app mb-0.5">{stat.value}</div>
+              <div className="text-xs text-app-muted">{stat.label}</div>
             </Link>
           );
         })}
       </div>
 
-      {/* ── Quick actions ─────────────────────────────────────────────────── */}
+      {/* Quick actions */}
       <div>
-        <h2 className="font-display font-semibold text-white mb-4">Actions rapides</h2>
+        <h2 className="font-display font-semibold text-app mb-4">Actions rapides</h2>
         <div className="grid sm:grid-cols-2 gap-4">
-          {QUICK_ACTIONS.map((action) => {
+          {QUICK_ACTIONS.map(action => {
             const Icon = action.icon;
             return (
-              <Link
-                key={action.title}
-                href={action.href}
-                className={`group flex items-center gap-4 border rounded-2xl p-5 transition-all duration-200 ${ACCENT_CLASSES[action.accent]}`}
-              >
-                <div className="shrink-0">
-                  <Icon className={`w-6 h-6 ${ICON_CLASSES[action.accent]}`} />
-                </div>
+              <Link key={action.title} href={action.href}
+                className="card flex items-center gap-4 p-5 group hover:border-[var(--border-hover)] transition-all">
+                <Icon className="w-5 h-5 shrink-0" style={{ color: 'var(--teal)' }} />
                 <div className="flex-1 min-w-0">
-                  <div className={`font-semibold text-sm text-white mb-0.5 transition-colors ${ACCENT_CLASSES[action.accent].split(' ').at(-1)}`}>
-                    {action.title}
-                  </div>
-                  <div className="text-xs text-white/40 truncate">{action.description}</div>
+                  <div className="font-semibold text-sm text-app mb-0.5">{action.title}</div>
+                  <div className="text-xs text-app-muted truncate">{action.desc}</div>
                 </div>
-                <div className="flex items-center gap-1 text-xs font-medium text-white/30 group-hover:text-white/60 transition-colors shrink-0">
-                  {action.cta}
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </div>
+                <ChevronRight className="w-4 h-4 text-app-muted group-hover:text-app transition-colors shrink-0" />
               </Link>
             );
           })}
         </div>
       </div>
 
-      {/* ── Getting started checklist ─────────────────────────────────────── */}
-      <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
+      {/* Checklist onboarding */}
+      <div className="card p-6">
         <div className="flex items-center gap-2 mb-5">
-          <Target className="w-5 h-5 text-teal-400" />
-          <h2 className="font-display font-semibold text-white">Démarrez en 4 étapes</h2>
+          <Target className="w-5 h-5" style={{ color: 'var(--teal)' }} />
+          <h2 className="font-display font-semibold text-app">Démarrez en 4 étapes</h2>
+          <span className="ml-auto text-xs text-app-muted">{doneSteps}/4</span>
         </div>
 
-        <div className="space-y-3">
-          {[
-            { step: 1, label: 'Créer votre premier CV',             href: '/dashboard/cv',           done: false },
-            { step: 2, label: 'Lancer une simulation d\'entretien', href: '/dashboard/interview',    done: false },
-            { step: 3, label: 'Générer une lettre de motivation',   href: '/dashboard/cover-letter', done: false },
-            { step: 4, label: 'Consulter votre Career Coach',       href: '/dashboard/coach',        done: false },
-          ].map((item) => (
-            <Link
-              key={item.step}
-              href={item.href}
-              className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/4 transition-all duration-150 group"
-            >
-              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
-                item.done
-                  ? 'bg-teal-400 border-teal-400 text-navy-900'
-                  : 'border-white/20 text-white/30 group-hover:border-teal-400/50 group-hover:text-teal-400/70'
-              }`}>
+        <div className="space-y-2 mb-5">
+          {checklist.map(item => (
+            <Link key={item.step} href={item.href}
+              className="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-2 transition-all group">
+              <div className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold shrink-0 transition-all"
+                style={item.done ? {
+                  backgroundColor: 'var(--teal)',
+                  borderColor: 'var(--teal)',
+                  color: '#0F1629',
+                } : {
+                  borderColor: 'var(--border)',
+                  color: 'var(--text-muted)',
+                }}>
                 {item.done ? '✓' : item.step}
               </div>
-              <span className={`text-sm flex-1 transition-colors ${
-                item.done ? 'line-through text-white/30' : 'text-white/60 group-hover:text-white/90'
-              }`}>
+              <span className={`text-sm flex-1 transition-colors ${item.done ? 'line-through text-app-muted' : 'text-app-2 group-hover:text-app'}`}>
                 {item.label}
               </span>
               {!item.done && (
-                <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-teal-400/60 transition-colors" />
+                <ArrowRight className="w-4 h-4 text-app-muted group-hover:text-app transition-colors" />
               )}
             </Link>
           ))}
         </div>
 
         {/* Progress bar */}
-        <div className="mt-5 pt-4 border-t border-white/6">
-          <div className="flex justify-between text-xs text-white/30 mb-2">
+        <div>
+          <div className="flex justify-between text-xs text-app-muted mb-2">
             <span>Progression</span>
-            <span>0 / 4 étapes</span>
+            <span>{pct}%</span>
           </div>
-          <div className="w-full h-1.5 bg-white/8 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-teal-400 to-blue-500 rounded-full transition-all duration-500"
-              style={{ width: '0%' }}
-            />
+          <div className="w-full h-1.5 rounded-full" style={{ backgroundColor: 'var(--border)' }}>
+            <div className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--teal), #2D41A5)' }} />
           </div>
         </div>
       </div>
 
-      {/* ── Recent activity placeholder ───────────────────────────────────── */}
-      <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-5">
-          <Clock className="w-5 h-5 text-white/40" />
-          <h2 className="font-display font-semibold text-white">Activité récente</h2>
+      {/* Recent activity */}
+      <div className="card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-4 h-4 text-app-muted" />
+          <h2 className="font-display font-semibold text-app">Activité récente</h2>
         </div>
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-white/4 flex items-center justify-center mb-4">
-            <Clock className="w-6 h-6 text-white/20" />
+        {(data?.interviewCount ?? 0) === 0 && (data?.cvCount ?? 0) === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-app-muted text-sm">Aucune activité pour l'instant.</p>
+            <p className="text-app-muted text-xs mt-1">Commencez par créer votre CV 👆</p>
           </div>
-          <p className="text-white/30 text-sm">Aucune activité pour l'instant.</p>
-          <p className="text-white/20 text-xs mt-1">Commencez par créer votre CV 👆</p>
-        </div>
+        ) : (
+          <div className="space-y-2">
+            {(data?.cvCount ?? 0) > 0 && (
+              <div className="flex items-center gap-3 py-2 border-b border-app">
+                <FileText className="w-4 h-4" style={{ color: 'var(--teal)' }} />
+                <span className="text-sm text-app-2">{data!.cvCount} CV{data!.cvCount > 1 ? 's' : ''} créé{data!.cvCount > 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {(data?.interviewCount ?? 0) > 0 && (
+              <div className="flex items-center gap-3 py-2">
+                <Mic2 className="w-4 h-4" style={{ color: 'var(--teal)' }} />
+                <span className="text-sm text-app-2">{data!.interviewCount} entretien{data!.interviewCount > 1 ? 's' : ''} complété{data!.interviewCount > 1 ? 's' : ''}</span>
+                {data?.avgScore && (
+                  <span className="ml-auto text-sm font-bold" style={{ color: 'var(--teal)' }}>
+                    Moy. {data.avgScore}/100
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
-
     </div>
   );
 }
