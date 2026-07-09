@@ -15,50 +15,49 @@ async function getDashboardData(clerkId: string) {
 
   const [cvs, interviews, letters, goals] = await Promise.all([
     db.from('cvs').select('id').eq('user_id', user.id),
-    db.from('interview_sessions').select('id, global_score, status').eq('user_id', user.id).eq('status', 'completed'),
+    db.from('interview_sessions').select('id,global_score,status').eq('user_id', user.id).eq('status', 'completed'),
     db.from('cover_letters').select('id').eq('user_id', user.id),
-    db.from('career_goals').select('id, completed').eq('user_id', user.id),
+    db.from('career_goals').select('id,completed').eq('user_id', user.id),
   ]);
 
-  const scores     = (interviews.data ?? []).map(i => i.global_score).filter(Boolean) as number[];
-  const avgScore   = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-  const doneGoals  = (goals.data ?? []).filter(g => g.completed).length;
+  const scores   = (interviews.data ?? []).map(i => i.global_score).filter(Boolean) as number[];
+  const avgScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
 
   return {
-    cvCount:       cvs.data?.length ?? 0,
+    cvCount:        cvs.data?.length        ?? 0,
     interviewCount: interviews.data?.length ?? 0,
-    letterCount:   letters.data?.length ?? 0,
-    goalCount:     goals.data?.length ?? 0,
-    doneGoals,
+    letterCount:    letters.data?.length    ?? 0,
+    goalCount:      goals.data?.length      ?? 0,
+    doneGoals:      (goals.data ?? []).filter(g => g.completed).length,
     avgScore,
   };
 }
 
 const QUICK_ACTIONS = [
-  { title: 'Créer mon CV',          desc: 'Nouveau CV optimisé ATS',                href: '/dashboard/cv',           icon: FileText,   color: 'teal'   },
-  { title: "Simuler un entretien",  desc: 'Choisissez un poste et entraînez-vous',  href: '/dashboard/interview',    icon: Mic2,       color: 'blue'   },
-  { title: 'Générer une lettre',    desc: 'Lettre de motivation en 30 secondes',     href: '/dashboard/cover-letter', icon: Mail,       color: 'violet' },
-  { title: 'Mon Career Coach',      desc: 'Roadmap personnalisée + recommandations', href: '/dashboard/coach',        icon: TrendingUp, color: 'orange' },
+  { title: 'Créer mon CV',         desc: 'Nouveau CV optimisé ATS',                href: '/dashboard/cv',           icon: FileText,   },
+  { title: "Simuler un entretien", desc: 'Choisissez un poste et entraînez-vous',  href: '/dashboard/interview',    icon: Mic2,       },
+  { title: 'Générer une lettre',   desc: 'Lettre de motivation en 30 secondes',     href: '/dashboard/cover-letter', icon: Mail,       },
+  { title: 'Mon Career Coach',     desc: 'Roadmap personnalisée + recommandations', href: '/dashboard/coach',        icon: TrendingUp, },
 ];
 
 export default async function DashboardPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) redirect('/sign-in');
 
   const data = await getDashboardData(userId);
 
   const stats = [
-    { label: 'CVs créés',         value: data?.cvCount ?? 0,        icon: FileText,  href: '/dashboard/cv'        },
-    { label: 'Entretiens',        value: data?.interviewCount ?? 0,  icon: Mic2,      href: '/dashboard/interview' },
-    { label: 'Score moyen',       value: data?.avgScore ? `${data.avgScore}` : '—', icon: Star, href: '/dashboard/progress' },
-    { label: 'Objectifs actifs',  value: data?.goalCount ?? 0,       icon: Target,    href: '/dashboard/coach'     },
+    { label: 'CVs créés',        value: data?.cvCount        ?? 0,                          icon: FileText, href: '/dashboard/cv'        },
+    { label: 'Entretiens',       value: data?.interviewCount ?? 0,                          icon: Mic2,     href: '/dashboard/interview' },
+    { label: 'Score moyen',      value: data?.avgScore ? `${data.avgScore}` : '—',          icon: Star,     href: '/dashboard/progress'  },
+    { label: 'Objectifs actifs', value: data?.goalCount      ?? 0,                          icon: Target,   href: '/dashboard/coach'     },
   ];
 
   const checklist = [
-    { step: 1, label: 'Créer votre premier CV',              href: '/dashboard/cv',           done: (data?.cvCount ?? 0) > 0 },
-    { step: 2, label: "Lancer une simulation d'entretien",   href: '/dashboard/interview',    done: (data?.interviewCount ?? 0) > 0 },
-    { step: 3, label: 'Générer une lettre de motivation',    href: '/dashboard/cover-letter', done: (data?.letterCount ?? 0) > 0 },
-    { step: 4, label: 'Consulter votre Career Coach',        href: '/dashboard/coach',        done: (data?.goalCount ?? 0) > 0 },
+    { step: 1, label: 'Créer votre premier CV',             href: '/dashboard/cv',           done: (data?.cvCount        ?? 0) > 0 },
+    { step: 2, label: "Lancer une simulation d'entretien",  href: '/dashboard/interview',    done: (data?.interviewCount ?? 0) > 0 },
+    { step: 3, label: 'Générer une lettre de motivation',   href: '/dashboard/cover-letter', done: (data?.letterCount    ?? 0) > 0 },
+    { step: 4, label: 'Consulter votre Career Coach',       href: '/dashboard/coach',        done: (data?.goalCount      ?? 0) > 0 },
   ];
 
   const doneSteps = checklist.filter(c => c.done).length;
@@ -67,7 +66,6 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-app">Tableau de bord</h1>
@@ -85,8 +83,7 @@ export default async function DashboardPage() {
         {stats.map(stat => {
           const Icon = stat.icon;
           return (
-            <Link key={stat.label} href={stat.href}
-              className="card p-5 hover:border-[var(--border-hover)] group transition-all">
+            <Link key={stat.label} href={stat.href} className="card p-5 group transition-all">
               <Icon className="w-4 h-4 mb-4" style={{ color: 'var(--teal)' }} />
               <div className="font-display text-2xl font-bold text-app mb-0.5">{stat.value}</div>
               <div className="text-xs text-app-muted">{stat.label}</div>
@@ -103,7 +100,7 @@ export default async function DashboardPage() {
             const Icon = action.icon;
             return (
               <Link key={action.title} href={action.href}
-                className="card flex items-center gap-4 p-5 group hover:border-[var(--border-hover)] transition-all">
+                className="card flex items-center gap-4 p-5 group transition-all">
                 <Icon className="w-5 h-5 shrink-0" style={{ color: 'var(--teal)' }} />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm text-app mb-0.5">{action.title}</div>
@@ -116,44 +113,32 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Checklist onboarding */}
+      {/* Checklist */}
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-5">
           <Target className="w-5 h-5" style={{ color: 'var(--teal)' }} />
           <h2 className="font-display font-semibold text-app">Démarrez en 4 étapes</h2>
           <span className="ml-auto text-xs text-app-muted">{doneSteps}/4</span>
         </div>
-
         <div className="space-y-2 mb-5">
           {checklist.map(item => (
             <Link key={item.step} href={item.href}
               className="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-2 transition-all group">
               <div className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold shrink-0 transition-all"
-                style={item.done ? {
-                  backgroundColor: 'var(--teal)',
-                  borderColor: 'var(--teal)',
-                  color: '#0F1629',
-                } : {
-                  borderColor: 'var(--border)',
-                  color: 'var(--text-muted)',
-                }}>
+                style={item.done ? { backgroundColor: 'var(--teal)', borderColor: 'var(--teal)', color: '#0F1629' }
+                                 : { borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
                 {item.done ? '✓' : item.step}
               </div>
               <span className={`text-sm flex-1 transition-colors ${item.done ? 'line-through text-app-muted' : 'text-app-2 group-hover:text-app'}`}>
                 {item.label}
               </span>
-              {!item.done && (
-                <ArrowRight className="w-4 h-4 text-app-muted group-hover:text-app transition-colors" />
-              )}
+              {!item.done && <ArrowRight className="w-4 h-4 text-app-muted group-hover:text-app transition-colors" />}
             </Link>
           ))}
         </div>
-
-        {/* Progress bar */}
         <div>
           <div className="flex justify-between text-xs text-app-muted mb-2">
-            <span>Progression</span>
-            <span>{pct}%</span>
+            <span>Progression</span><span>{pct}%</span>
           </div>
           <div className="w-full h-1.5 rounded-full" style={{ backgroundColor: 'var(--border)' }}>
             <div className="h-full rounded-full transition-all duration-500"
@@ -162,7 +147,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent activity */}
+      {/* Activity */}
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-4 h-4 text-app-muted" />
@@ -186,9 +171,7 @@ export default async function DashboardPage() {
                 <Mic2 className="w-4 h-4" style={{ color: 'var(--teal)' }} />
                 <span className="text-sm text-app-2">{data!.interviewCount} entretien{data!.interviewCount > 1 ? 's' : ''} complété{data!.interviewCount > 1 ? 's' : ''}</span>
                 {data?.avgScore && (
-                  <span className="ml-auto text-sm font-bold" style={{ color: 'var(--teal)' }}>
-                    Moy. {data.avgScore}/100
-                  </span>
+                  <span className="ml-auto text-sm font-bold" style={{ color: 'var(--teal)' }}>Moy. {data.avgScore}/100</span>
                 )}
               </div>
             )}
