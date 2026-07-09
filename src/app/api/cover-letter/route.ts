@@ -10,20 +10,12 @@ async function getDbUserId(clerkId: string) {
   return data?.id ?? null;
 }
 
-// GET /api/cover-letter
 export async function GET() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-
   const dbUserId = await getDbUserId(userId);
   if (!dbUserId) return NextResponse.json([]);
-
   const db = supabaseAdmin();
-  const { data } = await db
-    .from('cover_letters')
-    .select('id, title, job_title, company, tone, created_at')
-    .eq('user_id', dbUserId)
-    .order('created_at', { ascending: false });
-
+  const { data } = await db.from('cover_letters').select('id,title,job_title,company,tone,created_at').eq('user_id', dbUserId).order('created_at', { ascending: false });
   return NextResponse.json(data ?? []);
 }
