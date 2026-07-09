@@ -14,29 +14,21 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggle: () => {},
 });
 
+function applyTheme(t: Theme) {
+  const root = document.documentElement;
+  root.classList.remove('dark', 'light');
+  root.classList.add(t);
+  root.style.colorScheme = t;
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
 
-  // Lire le thème sauvegardé au montage
   useEffect(() => {
-    const saved = localStorage.getItem('entrethub-theme') as Theme | null;
-    const resolved = saved ?? 'dark';
-    setTheme(resolved);
-    applyTheme(resolved);
+    const saved = (localStorage.getItem('entrethub-theme') as Theme) ?? 'dark';
+    setTheme(saved);
+    applyTheme(saved);
   }, []);
-
-  const applyTheme = (t: Theme) => {
-    const root = document.documentElement;
-    if (t === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-      root.style.colorScheme = 'dark';
-    } else {
-      root.classList.add('light');
-      root.classList.remove('dark');
-      root.style.colorScheme = 'light';
-    }
-  };
 
   const toggle = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
