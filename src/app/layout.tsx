@@ -12,19 +12,9 @@ export const metadata: Metadata = {
   description:
     "Votre coach carrière IA : optimisation de CV, lettres de motivation, simulation d'entretiens et roadmap de compétences personnalisée.",
   keywords: ['CV', 'entretien', 'emploi', 'carrière', 'IA', 'coach', 'ATS'],
-  authors: [{ name: 'Entrethub' }],
-  openGraph: {
-    type:      'website',
-    locale:    'fr_FR',
-    url:       'https://entrethub.vercel.app',
-    siteName:  'Entrethub',
-    title:     'Entrethub — Coach Carrière IA',
-    description: 'Préparez vos candidatures. Réussissez vos entretiens.',
-  },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0F1629',
   width: 'device-width',
   initialScale: 1,
 };
